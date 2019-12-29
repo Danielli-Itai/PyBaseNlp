@@ -1,9 +1,9 @@
 import re
-from PyBase import SqlDb
-from PyBase import TfIDf
+from operator import itemgetter
+
+from PyBase import Cast
 from PyBase import Files
 from PyBase.Config import ConfigCls
-from operator import itemgetter
 
 
 
@@ -160,17 +160,16 @@ class TFIDF():
 #                                                                    #
 ######################################################################
 def RepoTfIDf(repo_docs:dict):
-	repos_text_list = TfIDf.getReposTextList(repo_docs);
-	tfidf_alg:TfIDf.TFIDF = TfIDf.TFIDF(repos_text_list)
+	repos_text_list = getReposTextList(repo_docs);
+	tfidf_alg:TFIDF = TFIDF(repos_text_list)
 	docs_tfidf:list = tfidf_alg.getTFIDF();
 	docs_score:list = tfidf_alg.getDocScoring(docs_tfidf);
 	return(docs_score);
 
 
 def RepoTermsTfIDf(repo_docs:dict, terms:list):
-	repos_text_list = TfIDf.getReposTextList(repo_docs);
-	tfidf_alg:TfIDf.TFIDF = TfIDf.TFIDF(repos_text_list)
+	repos_text_list = getReposTextList(repo_docs);
+	tfidf_alg:TFIDF = TFIDF(repos_text_list)
 	docs_tfidf:dict = tfidf_alg.getTFIDF();
 	terms_tfidf = tfidf_alg.CompFilter(docs_tfidf, terms);
 	return(terms_tfidf);
-

@@ -1,19 +1,15 @@
-import re
+import math
 from operator import itemgetter
 
-from PyBase import Cast
-from PyBase import Files
-from PyBase.Config import ConfigCls
 
 
 
 
-#convert the repositories dictionary in to
+# Convert the repositories dictionary in to
 # a list of Repository Id and lower case strings.
 def getReposTextList(repo_docs:dict)->list:
 	repos_text_list:list = [];
 	for repo in repo_docs:
-		#repo_docs[repo]= [x.lower() for x in repo_docs[repo]]
 		repo_docs[repo] = [repo_docs[repo][0], repo_docs[repo][1].lower()]
 		repos_text_list.append(repo_docs[repo])
 	return(repos_text_list)
@@ -29,22 +25,22 @@ def getWordset(doc):
 # Compute term frequence for each document.
 # Return the words dictionary with term occurrences for each document.
 def CompTermFreq(docs_list, wordSet)->list:
-	wordDict = []
+	termFreq = []
 	for i in range(0, len(docs_list)):
 		doc_name = docs_list[i][0]
-		wordDict.append([doc_name,dict.fromkeys(wordSet, 0)])   # Create a dictionary of the terms with count 0.
+		termFreq.append([doc_name, dict.fromkeys(wordSet, 0)])   # Create a list of document terms with count 0.
 
-	for dic_indx in range(0, len(wordDict)):
-		for word in docs_list[dic_indx][1]:
-			wordDict[dic_indx][1][word] += 1                      # Increase the number of occurrences for each term.
-	return wordDict
+	for dic_indx in range(0, len(termFreq)):                    # loop threw documents.
+		for word in docs_list[dic_indx][1]:                      # Loop tokens in document.
+			termFreq[dic_indx][1][word] += 1                      # Increase the number of occurrences for each term.
+	return termFreq
 
 
-#Compute the inverse
+# Compute the inverse
 #https://nlp.stanford.edu/IR-book/html/htmledition/inverse-document-frequency-1.html#fig:figureidf
 def CompInvDocFreq(docList)->dict:
 	import math
-	idfDict = {}
+
 	N = len(docList)
 
 	idfDict = dict.fromkeys(docList[0][1].keys(), 0)
@@ -60,10 +56,12 @@ def CompInvDocFreq(docList)->dict:
 
 
 #multiply each document term frequency with its inverse document frequaency.
-def CompWeighting(docs_terms, docs_dict, dic_indx, idfs):
+def CompWeighting(docs_terms:list, docs_list:list, dic_indx:int, idfs:dict):
 	tfidf = {}
 	for word in docs_terms[dic_indx][1]:
-		tfidf[word] = docs_dict[dic_indx][1][word] * idfs[word]
+		tfidf[word] = 0
+		tf = docs_list[dic_indx][1][word]   #term frequency.
+		if (tf>0):		tfidf[word] = (1+math.log10(tf)) * idfs[word]
 	return tfidf
 
 
@@ -71,22 +69,23 @@ def CompWeighting(docs_terms, docs_dict, dic_indx, idfs):
 
 
 class TFIDF():
-	def __init__(self, docs_str):
-		self.docs_terms = [[x[0], x[1].split()] for x in docs_str]     #Create a list of terms for each of the documents.
-		word_set = getWordset(self.docs_terms)                         #return all terms in the dataset (from all documents).
-		self.docs_dict = CompTermFreq(self.docs_terms, word_set)       #Term (word) frequency within the whole dataset.
-		self.iner_doc_freq = CompInvDocFreq(self.docs_dict)            #return tfidf score of each word.
+	#Receives a list of documents, each document is a list of Id and text
+	def __init__(self, docs_list:list):
+		self.docs_terms = [[x[0], x[1].split()] for x in docs_list]    #Create a list of terms for each documents [id,terms:list].
+		dictionary = getWordset(self.docs_terms)                       #return all terms in the dataset (from all documents).
+		self.docs_term_freq = CompTermFreq(self.docs_terms, dictionary)     #Term (word) frequency within the whole dataset.
+		self.inv_doc_freq = CompInvDocFreq(self.docs_term_freq)            #return tfidf score of each word.
 		return;
 
 	#return tfidf vector of each document.
 	def getTFIDF(self):
 		tfidf_out = {}
 		for dic_indx in range(0, len(self.docs_terms)):
-			tfidf_out[self.docs_terms[dic_indx][0]] = CompWeighting(self.docs_terms, self.docs_dict, dic_indx, self.iner_doc_freq)
+			tfidf_out[self.docs_terms[dic_indx][0]] = CompWeighting(self.docs_terms, self.docs_term_freq, dic_indx, self.inv_doc_freq)
 
 		# tfidf_out = []
 		# for dic_indx in range(0, len(self.docs_terms)):
-		# 	tfidf_out.append([self.docs_terms[dic_indx][0], CompWeighting(self.docs_terms, self.docs_dict, dic_indx, self.iner_doc_freq)])
+		# 	tfidf_out.append([self.docs_terms[dic_indx][0], CompWeighting(self.docs_terms, self.docs_term_freq, dic_indx, self.inv_doc_freq)])
 		return tfidf_out
 
 	# return tfidf score of each document

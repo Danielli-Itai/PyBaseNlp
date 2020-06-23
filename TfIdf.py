@@ -42,7 +42,6 @@ def CompInvDocFreq(docList)->dict:
 	import math
 
 	N = len(docList)
-
 	idfDict = dict.fromkeys(docList[0][1].keys(), 0)
 	for doc in docList:
 		for word, val in doc[1].items():
@@ -82,10 +81,6 @@ class TFIDF():
 		tfidf_out = {}
 		for dic_indx in range(0, len(self.docs_terms)):
 			tfidf_out[self.docs_terms[dic_indx][0]] = CompWeighting(self.docs_terms, self.docs_term_freq, dic_indx, self.inv_doc_freq)
-
-		# tfidf_out = []
-		# for dic_indx in range(0, len(self.docs_terms)):
-		# 	tfidf_out.append([self.docs_terms[dic_indx][0], CompWeighting(self.docs_terms, self.docs_term_freq, dic_indx, self.inv_doc_freq)])
 		return tfidf_out
 
 	# return tfidf score of each document
@@ -165,10 +160,13 @@ def RepoTfIDf(repo_docs:dict):
 	docs_score:list = tfidf_alg.getDocScoring(docs_tfidf);
 	return(docs_score);
 
-
+# Repository documents is a list of lists containing [[<doc name>, <doc contents>]]
 def RepoTermsTfIDf(repo_docs:dict, terms:list):
 	repos_text_list = getReposTextList(repo_docs);
 	tfidf_alg:TFIDF = TFIDF(repos_text_list)
 	docs_tfidf:dict = tfidf_alg.getTFIDF();
-	terms_tfidf = tfidf_alg.CompFilter(docs_tfidf, terms);
+
+	terms_tfidf = docs_tfidf
+	if terms is not None:
+		terms_tfidf = tfidf_alg.CompFilter(docs_tfidf, terms);
 	return(terms_tfidf);

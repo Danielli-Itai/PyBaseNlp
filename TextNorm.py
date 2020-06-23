@@ -8,19 +8,30 @@ from PyBase import Cast
 # Normalization of string text.
 def StringText(text:str,lower:bool, alphanum:bool)->str:
 	try:
-		if (lower):     text = text.lower()
-		if (alphanum):  text = re.sub('[^0-9a-zA-Z]+', ' ', text)
+		if (lower):
+				text = text.lower()
+		if (alphanum):
+			text = re.sub('[^0-9a-zA-Z]+', ' ', text)
 	except:
 		pass
 	return(text)
 
 #convert the repositories dictionary in to
 # a list of Repository Id and lower case strings.
-def DocsText(repo_docs:dict, lower:bool, alphanum:bool)->list:
-	repos_text_list: dict = {};
-	for repo in repo_docs:
-		repos_text_list[repo] = StringText(repo_docs[repo],lower, alphanum);
-	return(repos_text_list)
+def DocsText(docs_list:dict, lower:bool, alphanum:bool)->dict:
+	docs_text = {}
+	for doc_naeme in docs_list:
+		text = StringText(docs_list[doc_naeme][1], lower, alphanum)
+		docs_text[doc_naeme] = [doc_naeme,text]
+	return docs_text
+
+def DocsStr(docs_list:dict, lower:bool, alphanum:bool)->str:
+	docs_text = ''
+	for doc_naeme in docs_list:
+		text = StringText(docs_list[doc_naeme][1], lower, alphanum)
+		docs_text += text
+	return docs_text
+
 
 
 # Create a list of terms for each of the documents.
@@ -30,23 +41,16 @@ def DocsTerms(docs_text:dict):
 		docs_terms[doc] = Cast.StringTerms(docs_text[doc]);
 	return(docs_terms);
 
-
-
-
 # # Text Cleaning
-# Before we start using the tweets' text we clean it.
-# We'll do the this in the class CleanText:
-# - remove the **mentions**, as we want to make the model generalisable to tweets of other airline companies too.
+# - remove the **mentions**, as we want to make the model generalisable to tweets.
 # - remove the **hash tag sign** (#) but not the actual tag as this may contain information
 # - set all words to **lowercase**
 # - remove all **punctuations**, including the question and exclamation marks
-# - remove the **urls** as they do not contain useful information and we did not notice a distinction in the number of urls used between the sentiment classes.
+# - remove the **urls** as they do not contain useful information.
 # - make sure the converted **emojis** are kept as one word.
 # - remove **digits**
 # - remove **stopwords**
 # - apply the **PorterStemmer** to keep the stem of the words.
-
-# In[5]:
 import string
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -101,11 +105,7 @@ class TweetsClean(BaseEstimator, TransformerMixin):
 
 
 # First we combine the TweetsCounts statistics with the CleanText variable.
-# **NOTE: **Initially, I made the mistake to do execute TweetsCounts and CleanText in the GridSearchCV below.
-# This took too long as it applies these functions each run of the GridSearch.
 # It suffices to run them only once.
-
-# In[8]:
 def TextCleanSet(df_eda, text_clean, text_name:str):
 	data_frame_model = df_eda
 	data_frame_model[text_name] = text_clean
@@ -116,27 +116,9 @@ def TextCleanSet(df_eda, text_clean, text_name:str):
 
 
 
-
 # **NOTE: **One side-effect of text cleaning is that some rows do not have any words left in their text.
-# For the CountVectorizer and TfIdfVectorizer this does not really pose a problem.
-# However, for the Word2Vec algorithm this causes an error.
-
-# There are different strategies that you could apply to deal with these missing values.
-# * Remove the complete row, but in a production environment this is not really desirable.
-# * Impute the missing value with some placeholder text like *[no_text]*
-# * Word2Vec: use the average of all vectors
-#
-# Here we will impute with a placeholder text '[no_text]'.
-
-# In[7]:
-#def EmptyText(text_clean):
-#	empty_clean = text_clean == ''
-#	print('{} records have no words left after text cleaning'.format(text_clean[empty_clean].count()))
-#	text_clean.loc[empty_clean] = '[no_text]'
-#	return(text_clean)
-
-# To show how the cleaned text variable will look like, here's a sample.
-# In[6]:
+# for the Word2Vec algorithm this causes an error.
+#  missing values will impute with a placeholder text '[no_text]'.
 #def CleanTextRun(data_frame, text_col, empty_text,out_path:path, show:bool):
 def CleanTextRun(data_frame, text_col, empty_text):
 	text_clean = TweetsClean().fit_transform(data_frame[text_col])
@@ -145,11 +127,6 @@ def CleanTextRun(data_frame, text_col, empty_text):
 	empty_clean = text_clean == ''
 	print('{} records have no words left after text cleaning'.format(text_clean[empty_clean].count()))
 	text_clean.loc[empty_clean] = empty_text#'[no_text]'
-
-#	text_clean = EmptyText(text_clean)
-#	if show:
-#		ShowFreqWords(text_clean, out_path.joinpath('bar_freq_word.png'))
-
 	return (text_clean)
 
 

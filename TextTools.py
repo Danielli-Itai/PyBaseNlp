@@ -1,4 +1,3 @@
-import pandas
 import pathlib as path
 import numpy as np
 
@@ -50,7 +49,7 @@ class TweetsCounts(BaseEstimator, TransformerMixin):
 			                  , 'count_urls': count_urls, 'count_emojis': count_emojis})
 		return data_frame
 
-#def TextCountsRun(data_frame, text_col:str, class_col:str, out_path:path, show:bool):
+
 def TextCountsRun(data_frame, text_col: str, class_col: str):
 	# In[4]:
 	text_count = TweetsCounts()
@@ -58,12 +57,7 @@ def TextCountsRun(data_frame, text_col: str, class_col: str):
 
 	# Add airline_sentiment to data_fame_eda
 	data_frame_eda[class_col] = data_frame[class_col]
-
-#	if show:
-#		show_dist_all(data_frame_eda, class_col, out_path)
 	return(data_frame_eda)
-
-
 
 
 
@@ -85,8 +79,6 @@ class ColumnExtractor(TransformerMixin, BaseEstimator):
 
 
 
-
-
 # Now that we have the cleaned text of the tweets, we can have a look at what are the most frequent words.
 # Below we'll show the top 20 words.
 #
@@ -100,7 +92,5 @@ def ShowFreqWords(text_clean, out_file:path):
 	word_freq = dict(zip(cv.get_feature_names(), np.asarray(bow.sum(axis=0)).ravel()))
 	word_counter = collections.Counter(word_freq)
 	word_counter_df = pandas.DataFrame(word_counter.most_common(20), columns=['word', 'freq'])
-
-#	DataPlot.ShowFrequency(word_counter_df, out_file)
 	return word_counter_df;
 

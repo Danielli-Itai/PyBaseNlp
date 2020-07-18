@@ -1,3 +1,4 @@
+import sys
 import math
 from operator import itemgetter
 
@@ -125,25 +126,56 @@ class TFIDF():
 		out_tfidf = {}
 
 		for id, doc_weights in docs_tfidf.items():
-			term_found: bool = False;
 			query_tfidf = {};#[['', 0] for i in range(len(term_list))]
 			for doc_trm in doc_weights:
 				for term in term_list:
 					if(term not in query_tfidf):query_tfidf[term] = 0;
 					if term in doc_trm and (doc_weights[doc_trm]>0):
 						query_tfidf[term] += doc_weights[doc_trm];#Increase term weight is it is found.
-						term_found = True
 
 			#Add terms weights.
-			if(term_found): out_tfidf[id] = query_tfidf
-			#end for loop.
-
-		# Sort in acceding order.
-		# list_reversor = reversed(sorted(out_tfidf, key=itemgetter(1)))
-		# out_tfidf = [x for x in list_reversor]
+			out_tfidf[id] = query_tfidf
 
 		return out_tfidf
 
+
+#Normalize the repositories statistics.
+def ScoreNormalize(repos_count:dict, repo_fields:list)->dict:
+	#containers initialization.
+	fields_stat = {};
+	for field in repo_fields:
+		fields_stat[field] = {'sum':0,'max':0, 'min':sys.maxsize};
+
+	# Logaritmic reduction for redusing the effect of lage items.
+	for repo_id, repo_info  in repos_count.items():
+		for field in repo_fields:
+			if field in repo_info:
+				val:int = repos_count[repo_id][field];
+				if(0!=val):
+					repos_count[repo_id][field] = math.log10(val)
+
+	# Calculate sum, minimum, maximum.
+	for repo_id, repo_info  in repos_count.items():
+		for field in repo_fields:
+			if field in repo_info:
+				fields_stat[field]['sum'] += repo_info[field];
+				if fields_stat[field]['max'] < repo_info[field]:
+					fields_stat[field]['max'] = repo_info[field]
+				if fields_stat[field]['min'] > repo_info[field]:
+					fields_stat[field]['min'] = repo_info[field]
+			else:
+				fields_stat[field] = {'sum':0,'max':0, 'min':0};
+
+	# Normalize the data.
+	for repo_id, repo_info  in repos_count.items():
+		count = len(repos_count);
+		for var in repo_fields:
+			if var in repo_info:
+				val:int = repos_count[repo_id][var];
+				if(fields_stat[var]['sum'] > 0):
+					repos_count[repo_id][var] = val / fields_stat[var]['sum'];
+
+	return(repos_count);
 
 
 
@@ -169,4 +201,6 @@ def RepoTermsTfIDf(repo_docs:dict, terms:list):
 	terms_tfidf = docs_tfidf
 	if terms is not None:
 		terms_tfidf = tfidf_alg.CompFilter(docs_tfidf, terms);
+
+	tfidf_score = ScoreNormalize(terms_tfidf, terms)
 	return(terms_tfidf);

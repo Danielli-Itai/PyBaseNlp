@@ -126,7 +126,7 @@ class TFIDF():
 		out_tfidf = {}
 
 		for id, doc_weights in docs_tfidf.items():
-			query_tfidf = {};#[['', 0] for i in range(len(term_list))]
+			query_tfidf = {};
 			for doc_trm in doc_weights:
 				for term in term_list:
 					if(term not in query_tfidf):query_tfidf[term] = 0;

@@ -1,6 +1,12 @@
+import os
 import sys
 import math
+
 from operator import itemgetter
+from sklearn.metrics.pairwise import cosine_similarity
+
+sys.path.append(os.path.join(os.getcwd(),'../'))
+from PyBaseNlp import TextNorm
 
 
 
@@ -8,7 +14,7 @@ from operator import itemgetter
 
 # Convert the repositories dictionary in to
 # a list of Repository Id and lower case strings.
-def getReposTextList(repo_docs:dict)->list:
+def DocsDicToList(repo_docs:dict)->list:
 	repos_text_list:list = [];
 	for repo in repo_docs:
 		repo_docs[repo] = [repo_docs[repo][0], repo_docs[repo][1].lower()]
@@ -16,11 +22,12 @@ def getReposTextList(repo_docs:dict)->list:
 	return(repos_text_list)
 
 #Convert the list of document terms in to a unified list of terms.
-def getWordset(doc):
-	wordSet = []
-	for x in doc:
-		wordSet = wordSet + x[1]
-	return set(wordSet)
+#def getWordset(doc):
+#	wordSet = []
+#	for x in doc:
+#		wordSet = wordSet + x[1]
+#	return set(wordSet)
+#Convert the list of document terms in to a unified list of terms.
 
 
 # Compute term frequence for each document.
@@ -37,22 +44,23 @@ def CompTermFreq(docs_list, wordSet)->list:
 	return termFreq
 
 
-# Compute the inverse
+# Compute the inverse document frequency for each vocabulary term.
 #https://nlp.stanford.edu/IR-book/html/htmledition/inverse-document-frequency-1.html#fig:figureidf
 def CompInvDocFreq(docList)->dict:
 	import math
 
-	N = len(docList)
-	idfDict = dict.fromkeys(docList[0][1].keys(), 0)
+	N = len(docList)												#number of dictionaries.
+	idfDict = dict.fromkeys(docList[0][1].keys(), 0)	#Vector of dictionary items.
 	for doc in docList:
 		for word, val in doc[1].items():
 			if val > 0:
-				idfDict[word] += 1
+				idfDict[word] += val								# count occurances if each term on each document.
 
-	for word, val in idfDict.items():
+	for word, val in idfDict.items():						# compute inverse document frequency.
 		idfDict[word] = math.log10(N / float(val))
 
 	return idfDict
+
 
 
 #multiply each document term frequency with its inverse document frequaency.
@@ -69,113 +77,71 @@ def CompWeighting(docs_terms:list, docs_list:list, dic_indx:int, idfs:dict):
 
 
 class TFIDF():
-	#Receives a list of documents, each document is a list of Id and text
-	def __init__(self, docs_list:list):
-		self.docs_terms = [[x[0], x[1].split()] for x in docs_list]    #Create a list of terms for each documents [id,terms:list].
-		dictionary = getWordset(self.docs_terms)                       #return all terms in the dataset (from all documents).
-		self.docs_term_freq = CompTermFreq(self.docs_terms, dictionary)     #Term (word) frequency within the whole dataset.
-		self.inv_doc_freq = CompInvDocFreq(self.docs_term_freq)            #return tfidf score of each word.
+	# Receives a dictionary of documents
+	# Each document is a string indexed by the repository id.
+	def __init__(self, docs_norm: dict):
+		self.docs_vocab = TextNorm.DocsWordset(docs_norm)							#return all terms in the dataset (from all documents).
+		self.docs_term_freq = TextNorm.DocsTermFreq(docs_norm, self.docs_vocab)
+
+		self.docs_vocab_freq = TextNorm.VocabWordfrq(self.docs_term_freq, self.docs_vocab)
+		self.docs_vocab_inv_freq = TextNorm.VocabInvDocfrq(len(docs_norm), self.docs_vocab_freq)
 		return;
+
+	def getVocabulary(self):
+		return self.docs_vocab
 
 	#return tfidf vector of each document.
 	def getTFIDF(self):
 		tfidf_out = {}
-		for dic_indx in range(0, len(self.docs_terms)):
-			tfidf_out[self.docs_terms[dic_indx][0]] = CompWeighting(self.docs_terms, self.docs_term_freq, dic_indx, self.inv_doc_freq)
+		for key, doc  in self.docs_term_freq.items():
+			tfidf_out[key] = {term: doc[term] * self.docs_vocab_inv_freq[term] for term in self.docs_vocab_inv_freq}
 		return tfidf_out
 
-	# return tfidf score of each document
-	# item[0] doc Id, item[1] sum, item[2] multply.
-	def getDocScoring(self, docs_tfidf:list):
-		doc_score = [['',0,0] for i in range(len(docs_tfidf))]
-		for doc_indx in range(0, len(docs_tfidf)):
-			for i in docs_tfidf[doc_indx][1]:
-				doc_score[doc_indx][0] = docs_tfidf[doc_indx][0]
-				doc_score[doc_indx][1] += docs_tfidf[doc_indx][1][i]
-				if(0 == doc_score[doc_indx][2]):
-					doc_score[doc_indx][2] = docs_tfidf[doc_indx][1][i]
-				else:
-					doc_score[doc_indx][2] *= docs_tfidf[doc_indx][1][i]
+
+	# Calculate tfid similarity acording to query sum.
+	def QueryTfidfSim(self, filter_words:dict):
+		docs_tfidf:dict = self.getTFIDF()
+		filter_norm = TextNorm.DocsNorm(filter_words, True, True)				# Normalize the query.
+		filter_vocab = TextNorm.DocsWordset(filter_norm)							# Get the filter vocabulary.
+
+		query_scor = dict.fromkeys(docs_tfidf.keys(), 0)
+		for key, doc in docs_tfidf.items():
+			for term in filter_vocab:
+				if term in doc:
+					query_scor[key] += doc[term]
+
+		return sorted(query_scor.values())
+
+
+	# Calculate a query TfIdf score for each document.
+	def QueryCosinSim(self, docs_tfidf:dict, filter_words:dict):
+		filter_norm = TextNorm.DocsNorm(filter_words, True, True)				# Normalize the query.
+
+		filter_vocab = TextNorm.DocsWordset(filter_norm)							# Get the filter vocabulary.
+		filter_term_freq = TextNorm.DocsTermFreq(filter_norm, filter_vocab)	# Get the vocabulary terms frequency.
+
+		for filter in filter_term_freq:													# Add query terms to the documents TfIdf.
+			for term in self.docs_vocab:													# for each query term.
+				if not term in filter_term_freq[filter]:								# if not already in the document
+					filter_term_freq[filter][term] = 0									# add to the document vector.
+
+		filter_vocab = self.docs_vocab.union(filter_vocab)							# add documents vocabulary to the filter vocabulary.
+
+		filter_vocab_freq = TextNorm.VocabWordfrq(filter_term_freq, filter_vocab)		#	Caluculate the filter vocabulary frequency.
+		filter_inv_freq = TextNorm.VocabInvDocfrq(len(docs_tfidf), filter_vocab_freq)	# Calculate inverse doc frequency.
+
+		# add query new terms to docs_tfidef vectors.
+		for term in filter_vocab:															# for each filter term.
+			for key in docs_tfidf:															# for all documantes.
+				if not term in docs_tfidf[key]:
+					docs_tfidf[key][term] = 0												# add filter words to docs vocabulary.
+
+		doc_score = {}
+		for key,doc_ifd in docs_tfidf.items():											# Calculate each document similarity score.
+			doc_score[key] = TextNorm.QueryCosSim(list(filter_inv_freq.values()), list(doc_ifd.values()))
+		doc_score = {k: v for k, v in sorted(doc_score.items(), key=lambda item: item[1], reverse=True)}	#sort the scores acceedig
 		return doc_score
 
-
-
-	# return similarity score of each document to query
-	def search_old(self, tfidf_out:list, query:list):
-		query_tfidf = []
-
-		num = 0
-		for doc_tfidf in tfidf_out:
-			query_tfidf.append(0.0)
-			for term in query:
-				if term in doc_tfidf:
-					query_tfidf[num] += doc_tfidf[term]
-			num = num + 1
-
-		hasil = [a * b for a, b in zip(query_tfidf, self.getDocScoring(tfidf_out))]
-		for i in range(0, len(hasil)):
-			hasil[i] = [i, hasil[i]]
-
-		hasil_akhir = reversed(sorted(hasil, key=itemgetter(1)))
-		hasil_akhir = [x for x in hasil_akhir]
-
-		return hasil_akhir
-
-	# return words similarity list for each document.
-	def CompFilter(self, docs_tfidf:dict, term_list:list):
-		out_tfidf = {}
-
-		for id, doc_weights in docs_tfidf.items():
-			query_tfidf = {};
-			for doc_trm in doc_weights:
-				for term in term_list:
-					if(term not in query_tfidf):query_tfidf[term] = 0;
-					if term in doc_trm and (doc_weights[doc_trm]>0):
-						query_tfidf[term] += doc_weights[doc_trm];#Increase term weight is it is found.
-
-			#Add terms weights.
-			out_tfidf[id] = query_tfidf
-
-		return out_tfidf
-
-
-#Normalize the repositories statistics.
-def ScoreNormalize(repos_count:dict, repo_fields:list)->dict:
-	#containers initialization.
-	fields_stat = {};
-	for field in repo_fields:
-		fields_stat[field] = {'sum':0,'max':0, 'min':sys.maxsize};
-
-	# Logaritmic reduction for redusing the effect of lage items.
-	for repo_id, repo_info  in repos_count.items():
-		for field in repo_fields:
-			if field in repo_info:
-				val:int = repos_count[repo_id][field];
-				if(0!=val):
-					repos_count[repo_id][field] = math.log10(val)
-
-	# Calculate sum, minimum, maximum.
-	for repo_id, repo_info  in repos_count.items():
-		for field in repo_fields:
-			if field in repo_info:
-				fields_stat[field]['sum'] += repo_info[field];
-				if fields_stat[field]['max'] < repo_info[field]:
-					fields_stat[field]['max'] = repo_info[field]
-				if fields_stat[field]['min'] > repo_info[field]:
-					fields_stat[field]['min'] = repo_info[field]
-			else:
-				fields_stat[field] = {'sum':0,'max':0, 'min':0};
-
-	# Normalize the data.
-	for repo_id, repo_info  in repos_count.items():
-		count = len(repos_count);
-		for var in repo_fields:
-			if var in repo_info:
-				val:int = repos_count[repo_id][var];
-				if(fields_stat[var]['sum'] > 0):
-					repos_count[repo_id][var] = val / fields_stat[var]['sum'];
-
-	return(repos_count);
 
 
 
@@ -185,22 +151,29 @@ def ScoreNormalize(repos_count:dict, repo_fields:list)->dict:
 #              Compute Repositories weights and scores               #
 #                                                                    #
 ######################################################################
-def RepoTfIDf(repo_docs:dict):
-	repos_text_list = getReposTextList(repo_docs);
-	tfidf_alg:TFIDF = TFIDF(repos_text_list)
-	docs_tfidf:list = tfidf_alg.getTFIDF();
-	docs_score:list = tfidf_alg.getDocScoring(docs_tfidf);
-	return(docs_score);
+def FilterDocs(filter_words:list)->dict:
+	index:int = 0
+	filter_docs = {}
+	for filter in filter_words:
+		filter_docs['filer' + str(index)] = filter
+		index += 1
+	return filter_docs
 
 # Repository documents is a list of lists containing [[<doc name>, <doc contents>]]
-def RepoTermsTfIDf(repo_docs:dict, terms:list):
-	repos_text_list = getReposTextList(repo_docs);
-	tfidf_alg:TFIDF = TFIDF(repos_text_list)
+def DocsTextTfIDf(text_docs:dict):
+	docs_norm = TextNorm.DocsNorm(text_docs, True, True)
+
+	tfidf_alg:TFIDF = TFIDF(docs_norm)
 	docs_tfidf:dict = tfidf_alg.getTFIDF();
 
-	terms_tfidf = docs_tfidf
-	if terms is not None:
-		terms_tfidf = tfidf_alg.CompFilter(docs_tfidf, terms);
+	return(docs_tfidf, tfidf_alg);
 
-	tfidf_score = ScoreNormalize(terms_tfidf, terms)
-	return(terms_tfidf);
+# Repository documents is a list of lists containing [[<doc name>, <doc contents>]]
+def RepoTermsSimilarity(repo_docs:dict, filter_words:list):
+	tfidf_alg:TFIDF = TFIDF(repo_docs)
+#	docs_tfidf:dict = tfidf_alg.getTFIDF();
+
+	filter_docs = FilterDocs(filter_words)
+	query_score = tfidf_alg.QueryTfidfSim(filter_docs)
+	docs_cos_sim = tfidf_alg.QueryCosinSim(filter_docs);
+	return docs_cos_sim;

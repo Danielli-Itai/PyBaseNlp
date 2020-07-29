@@ -1,45 +1,106 @@
 # Natural language normalization
 import re
-from PyBase import Cast
+import math
+
 
 
 
 
 # Normalization of string text.
 def StringText(text:str,lower:bool, alphanum:bool)->str:
-	try:
-		if (lower):
-				text = text.lower()
-		if (alphanum):
-			text = re.sub('[^0-9a-zA-Z]+', ' ', text)
-	except:
-		pass
-	return(text)
+#	try:
+	norm_text = text
+	if (lower):
+		norm_text = norm_text.lower()
+	if (alphanum):
+		norm_text = re.sub('[^0-9a-zA-Z]+', ' ', norm_text)
+#	except:
+#		pass
+	return(norm_text)
 
-#convert the repositories dictionary in to
-# a list of Repository Id and lower case strings.
-def DocsText(docs_list:dict, lower:bool, alphanum:bool)->dict:
-	docs_text = {}
-	for doc_naeme in docs_list:
-		text = StringText(docs_list[doc_naeme][1], lower, alphanum)
-		docs_text[doc_naeme] = [doc_naeme,text]
-	return docs_text
+# Normalize the text.
+# returning the text containint alphanum text.
+# and remove hihly frequent words (stop words).
+def DocsNorm(docs_dic:dict, lower:bool, alphanum:bool)->str:
+	docs_norm = {}
+	for key, document in docs_dic.items():
+		norm_text = StringText(document, lower, alphanum)
+		docs_norm[key] = norm_text
+	return docs_norm
 
-def DocsStr(docs_list:dict, lower:bool, alphanum:bool)->str:
-	docs_text = ''
-	for doc_naeme in docs_list:
-		text = StringText(docs_list[doc_naeme][1], lower, alphanum)
-		docs_text += text
-	return docs_text
+#Convert the list of document terms in to a unified list of terms.
+def DocsWordset(docs_dic:dict):
+	wordSet = {}
+	for key, doc in docs_dic.items():
+		for word in doc.split():
+			wordSet[word] = word
+	dictionary = set(wordSet.keys())
+	return dictionary
+
+def DocsTermFreq(docs_dic:list, wordSet)->list:
+	docTermFreq = {}
+	for doc in docs_dic:
+		docTermFreq[doc] = dict.fromkeys(wordSet, 0)   # Create a list of document terms with count 0.
+
+	for key,doc in docs_dic.items():
+		for word in doc.split():									# Loop tokens in document.
+			docTermFreq[key][word] += 1				# Increase the number of occurrences for each term.
+	return docTermFreq
+
+# Dictionary word frequency.
+# The frequency of vocabulary words in the corpus.
+def VocabWordfrq(docs_dic:dict, vocab_terms:list):
+	vocab_freq = dict.fromkeys(vocab_terms, 0)	#Vector of dictionary items.
+	for key, doc in docs_dic.items():
+		for word, val in doc.items():
+			if val > 0:
+				vocab_freq[word] += val								# count occurances if each term on each document.
+	return vocab_freq
+
+
+# Compute the inverse document frequence for each document term.
+def VocabInvDocfrq(N:int, vocab_freq:dict):
+	idfDict = dict.fromkeys(vocab_freq.keys(), 0)
+
+	for word, val in vocab_freq.items():
+		if(val > 0):
+			idfDict[word] = math.log10(N / float(val))
+	return idfDict
+
+#Smoothed inverse document frequency.
+def VocabInvDocfrqs(N:int, vocab_freq:dict):
+	idfDict = dict.fromkeys(vocab_freq.keys(), 0)
+	for word, val in vocab_freq.items():
+		idfDict[word] = math.log10(N / float(1+val)) + 1
+	return idfDict
+
+#Probobalistic inverse document frequency.
+def VocabInvDocfrqp(N:int, vocab_freq:dict):
+	idfDict = dict.fromkeys(vocab_freq.keys(), 0)
+	for word, val in vocab_freq.items():
+		if(N - val):
+			idfDict[word] = math.log10( (N - val) / float(val))
+	return idfDict
+
+import numpy
+def QueryCosSim(query_terms:list, doc_terms:list):
+	dot = numpy.dot(query_terms, doc_terms)
+
+	norma = numpy.linalg.norm(query_terms)
+	normb = numpy.linalg.norm(doc_terms)
+
+	cos_sim = dot / (norma * normb)
+
+	return cos_sim
 
 
 
 # Create a list of terms for each of the documents.
-def DocsTerms(docs_text:dict):
-	docs_terms:dict={}
-	for doc in docs_text:
-		docs_terms[doc] = Cast.StringTerms(docs_text[doc]);
-	return(docs_terms);
+#def DocsTerms(docs_text:dict):
+#	docs_terms:dict={}
+#	for doc in docs_text:
+#		docs_terms[doc] = Cast.StringTerms(docs_text[doc]);
+#	return(docs_terms);
 
 # # Text Cleaning
 # - remove the **mentions**, as we want to make the model generalisable to tweets.

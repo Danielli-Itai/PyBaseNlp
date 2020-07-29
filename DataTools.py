@@ -53,7 +53,7 @@ def DataCsvMerge(in_path:path, file_name:str, out_path:path, ):
 	if not (Files.DirNew(out_path)):  return (None)
 
 	data_file:pandas.DataFrame = pandas.DataFrame()
-	for name in Files.DirFiles(in_path):
+	for name in Files.FilesDirs(in_path):
 		data_csv = DataCsvLoad(name, False)
 		if data_file.empty:
 			data_file = data_csv

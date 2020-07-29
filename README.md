@@ -1,1 +1,3 @@
 # PyBaseNlp
+
+dependency: spatial

@@ -14,6 +14,14 @@ from PyBase import Files
 
 
 
+
+
+CSV_SEP_FLD:str = ','
+CSV_SEP_REC:str = '\n'
+
+
+
+
 def DataCsvGet(csv_str:str):
 	TESTDATA = StringIO(csv_str)
 	data_frame = pandas.read_csv(TESTDATA, engine='python', encoding='utf8')

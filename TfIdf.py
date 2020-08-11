@@ -92,7 +92,7 @@ class TFIDF():
 		return self.docs_vocab
 
 	def getDocs(self):
-		return self.docs_norm.keys()
+		return self.docs_norm
 
 	#return tfidf vector of each document.
 	def getTFIDF(self):
@@ -103,7 +103,7 @@ class TFIDF():
 
 
 	# Calculate tfid similarity acording to query sum.
-	def QueryTfidfSim(self, docs_tfidf:dict, filter_words:dict):
+	def QueryTfidfSim(self, filter_words:dict):
 		docs_tfidf:dict = self.getTFIDF()
 		filter_norm = TextNorm.DocsNorm(filter_words, True, True)				# Normalize the query.
 		filter_vocab = TextNorm.DocsWordset(filter_norm)							# Get the filter vocabulary.
@@ -119,7 +119,8 @@ class TFIDF():
 
 
 	# Calculate a query TfIdf score for each document.
-	def QueryCosinSim(self, docs_tfidf:dict, filter_docs:dict):
+	def QueryCosinSim(self, filter_docs:dict):
+		docs_tfidf: dict = self.getTFIDF()
 		filter_vocab = TextNorm.DocsWordset(filter_docs)							# Get the filter vocabulary.
 		filter_term_freq = TextNorm.DocsTermFreq(filter_docs, filter_vocab)	# Get the vocabulary terms frequency.
 

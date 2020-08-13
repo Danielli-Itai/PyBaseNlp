@@ -28,11 +28,11 @@ def DataCsvGet(csv_str:str):
 	return(data_frame)
 
 def DataCsvLoad(file_path:path, scrumbele:bool)->pandas:
-	pandas.set_option('display.max_colwidth', -1)
+	pandas.set_option('display.max_colwidth', None)
 	data_frame = pandas.read_csv(file_path, engine='python',index_col=False, encoding='utf8')
-	if(scrumbele):
+	if scrumbele:
 		data_frame = data_frame.reindex(numpy.random.permutation(data_frame.index))
-	return(data_frame)
+	return data_frame
 
 def DataCsvSave(data_file:pandas.DataFrame, file_path:path):
 	data_file.to_csv(file_path, index=False)

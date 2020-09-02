@@ -28,7 +28,7 @@ def DataCsvGet(csv_str:str):
 	return(data_frame)
 
 def DataCsvLoad(file_path:path, scrumbele:bool)->pandas:
-	pandas.set_option('display.max_colwidth', None)
+	#pandas.set_option('display.max_colwidth', None)
 	data_frame = pandas.read_csv(file_path, engine='python',index_col=False, encoding='utf8')
 	if scrumbele:
 		data_frame = data_frame.reindex(numpy.random.permutation(data_frame.index))

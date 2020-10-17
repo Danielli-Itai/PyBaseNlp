@@ -1,7 +1,11 @@
+import os
+import sys
 import pandas
 import numpy
 import pathlib as path
 import matplotlib.pyplot as plt
+
+sys.path.append(os.path.join(os.getcwd(),'../'))
 
 
 

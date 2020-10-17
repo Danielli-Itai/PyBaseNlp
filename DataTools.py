@@ -3,13 +3,14 @@
 # We shuffle the data frame in case the classes would be sorted.
 # This can be done with the **reindex** method applied on the **permutation** of the original indices.
 # In this notebook we will only focus on the text variable and the class variable.
+import os
 import sys
 import pandas
 from io import StringIO
 import numpy
 import pathlib as path
 
-sys.path.append('../PyBase')
+sys.path.append(os.path.join(os.getcwd(),'../PyBase'))
 from PyBase import Files
 
 

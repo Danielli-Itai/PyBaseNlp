@@ -16,11 +16,20 @@ import numpy as np
 # * **count_urls** : number of links in the tweet, preceded by http(s)
 # * **count_emojis** : number of emoji, which might be a good indication of the sentiment
 # In[3]:
+import os
+import sys
 import re
 import emoji
 import pandas
 from sklearn.base import BaseEstimator
 from sklearn.base import  TransformerMixin
+
+sys.path.append(os.path.join(os.getcwd(),'../'))
+
+
+
+
+
 class TweetsCounts(BaseEstimator, TransformerMixin):
 
 	def count_regex(self, pattern, tweet):

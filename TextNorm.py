@@ -21,7 +21,7 @@ def StringText(text:str,lower:bool, alphanum:bool)->str:
 # Normalize the text.
 # returning the text containint alphanum text.
 # and remove hihly frequent words (stop words).
-def DocsNorm(docs_dic:dict, lower:bool, alphanum:bool)->str:
+def DocsNorm(docs_dic:dict, lower:bool, alphanum:bool)->dict:
 	docs_norm = {}
 	for key, document in docs_dic.items():
 		norm_text = StringText(document, lower, alphanum)
@@ -37,7 +37,7 @@ def DocsWordset(docs_dic:dict):
 	dictionary = set(wordSet.keys())
 	return dictionary
 
-def DocsTermFreq(docs_dic:list, wordSet)->list:
+def DocsTermFreq(docs_dic:list, wordSet):
 	docTermFreq = {}
 	for doc in docs_dic:
 		docTermFreq[doc] = dict.fromkeys(wordSet, 0)   # Create a list of document terms with count 0.
@@ -112,11 +112,20 @@ def QueryCosSim(query_terms:list, doc_terms:list):
 # - remove **digits**
 # - remove **stopwords**
 # - apply the **PorterStemmer** to keep the stem of the words.
+import os
+import sys
 import string
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.base import BaseEstimator
 from sklearn.base import  TransformerMixin
+
+sys.path.append(os.path.join(os.getcwd(),'../'))
+
+
+
+
+
 class TweetsClean(BaseEstimator, TransformerMixin):
 
 	def remove_mentions(self, input_text):

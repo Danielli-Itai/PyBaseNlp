@@ -6,17 +6,23 @@ import math
 
 
 
-# Normalization of string text.
+# String text letters and numbers only.
 def StringText(text:str,lower:bool, alphanum:bool)->str:
 #	try:
 	norm_text = text
 	if (lower):
 		norm_text = norm_text.lower()
 	if (alphanum):
-		norm_text = re.sub('[^0-9a-zA-Z]+', ' ', norm_text)
-#	except:
-#		pass
-	return(norm_text)
+		norm_text = re.sub('[^a-zA-Z]+', ' ', norm_text)
+		#norm_text = re.sub('[^0-9a-zA-Z]+', ' ', norm_text)
+	norm_text = " ".join(norm_text.split())		# remove trailing,ecseeding and multiple white spaces.
+	return norm_text
+
+# String text letters and numbers only.
+def StringLetters(text:str)->str:
+	norm_text = re.sub('[^a-zA-Z]+', ' ', text)	# substitute everything not letters with space.
+	norm_text = " ".join(norm_text.split())		# remove trailing,ecseeding and multiple white spaces.
+	return norm_text
 
 # Normalize the text.
 # returning the text containint alphanum text.

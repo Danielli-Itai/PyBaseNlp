@@ -12,20 +12,24 @@ import math
 ######################################################################
 
 # String text letters and numbers only.
-def StringText(text:str,lower:bool, alphanum:bool)->str:
-#	try:
-	norm_text = text
-	if (lower):
-		norm_text = norm_text.lower()
-	if (alphanum):
-		norm_text = re.sub('[^a-zA-Z]+', ' ', norm_text)
-		#norm_text = re.sub('[^0-9a-zA-Z]+', ' ', norm_text)
+def StringLetters(text:str)->str:
+	norm_text = re.sub('[^a-zA-Z]+', ' ', text)	# substitute everything not letters with space.
 	norm_text = " ".join(norm_text.split())		# remove trailing,ecseeding and multiple white spaces.
 	return norm_text
 
-# String text letters and numbers only.
-def StringLetters(text:str)->str:
-	norm_text = re.sub('[^a-zA-Z]+', ' ', text)	# substitute everything not letters with space.
+# Normalize the string text by splitting case transitipon words,  letters and numbers only.
+def StringNorm(text_str:str, case_split:bool, to_lower:bool, alphabet:bool)->str:
+#	try:
+	norm_text = text_str
+	if case_split:	#Split words starting with capital letter followed by lower case letters (C styple naming convention)
+		norm_text = " ".join(re.sub(r"([A-Z]+[a-z]+$)", r" \1", text_str).split())
+
+	if to_lower:
+		norm_text = norm_text.lower()
+
+	if alphabet:
+		norm_text = re.sub('[^a-zA-Z]+', ' ', norm_text)
+		#norm_text = re.sub('[^0-9a-zA-Z]+', ' ', norm_text)
 	norm_text = " ".join(norm_text.split())		# remove trailing,ecseeding and multiple white spaces.
 	return norm_text
 
@@ -33,10 +37,10 @@ def StringLetters(text:str)->str:
 # Normalize the text.
 # returning the text containint alphanum text.
 # and remove hihly frequent words (stop words).
-def DocsNorm(docs_dic:dict, lower:bool, alphanum:bool)->dict:
+def DocsNorm(docs_dic:dict, case_split:bool, to_lower:bool, alphabet:bool)->dict:
 	docs_norm = {}
 	for key, document in docs_dic.items():
-		norm_text = StringText(document, lower, alphanum)
+		norm_text = StringNorm(document, case_split, to_lower, alphabet)
 		docs_norm[key] = norm_text
 	return docs_norm
 
@@ -104,6 +108,8 @@ def QueryCosSim(query_terms:list, doc_terms:list):
 	cos_sim = dot / (norma * normb)
 
 	return cos_sim
+
+
 
 
 

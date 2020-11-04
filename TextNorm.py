@@ -5,6 +5,11 @@ import math
 
 
 
+######################################################################
+#                                                                    #
+#                             Files API                              #
+#                                                                    #
+######################################################################
 
 # String text letters and numbers only.
 def StringText(text:str,lower:bool, alphanum:bool)->str:
@@ -23,6 +28,7 @@ def StringLetters(text:str)->str:
 	norm_text = re.sub('[^a-zA-Z]+', ' ', text)	# substitute everything not letters with space.
 	norm_text = " ".join(norm_text.split())		# remove trailing,ecseeding and multiple white spaces.
 	return norm_text
+
 
 # Normalize the text.
 # returning the text containint alphanum text.

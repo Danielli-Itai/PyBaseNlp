@@ -105,7 +105,7 @@ class TFIDF():
 	# Calculate tfid similarity acording to query sum.
 	def QueryTfidfSim(self, filter_words:dict):
 		docs_tfidf:dict = self.getTFIDF()
-		filter_norm = TextNorm.DocsNorm(filter_words, case_split=True, to_lower=True, alphabet=True)				# Normalize the query.
+		filter_norm = TextNorm.CodeDocsNorm(filter_words, case_split=True, to_lower=True, alphabet=True, stopw=True)				# Normalize the query.
 		filter_vocab = TextNorm.DocsWordset(filter_norm)							# Get the filter vocabulary.
 
 		query_scor = dict.fromkeys(docs_tfidf.keys(), 0)
@@ -167,12 +167,12 @@ def FilterDocs(filter_words:list)->dict:
 
 # Repository documents is a list of lists containing [[<doc name>, <doc contents>]]
 def DocsTextTfIDf(text_docs:dict):
-	docs_norm = TextNorm.DocsNorm(text_docs, case_split=True, to_lower=True, alphabet=True)
+	docs_norm = TextNorm.CodeDocsNorm(text_docs, case_split=True, to_lower=True, alphabet=True, stopw=True)
 
 	tfidf_alg:TFIDF = TFIDF(docs_norm)
 	docs_tfidf:dict = tfidf_alg.getTFIDF();
 
-	return(docs_tfidf, tfidf_alg);
+	return docs_tfidf, tfidf_alg
 
 # Repository documents is a list of lists containing [[<doc name>, <doc contents>]]
 def RepoTermsSimilarity(repo_docs:dict, filter_words:list):
@@ -182,4 +182,4 @@ def RepoTermsSimilarity(repo_docs:dict, filter_words:list):
 	filter_docs = FilterDocs(filter_words)
 	query_score = tfidf_alg.QueryTfidfSim(filter_docs)
 	docs_cos_sim = tfidf_alg.QueryCosinSim(filter_docs);
-	return docs_cos_sim;
+	return docs_cos_sim

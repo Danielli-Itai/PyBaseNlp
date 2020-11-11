@@ -1,6 +1,9 @@
 # Natural language normalization
 import re
 import math
+import nltk
+from nltk.corpus import stopwords
+
 
 
 
@@ -18,31 +21,46 @@ def StringLetters(text:str)->str:
 	return norm_text
 
 # Normalize the string text by splitting case transitipon words,  letters and numbers only.
-def StringNorm(text_str:str, case_split:bool, to_lower:bool, alphabet:bool)->str:
+def CodeLineNorm(text_str:str, case_split:bool, to_lower:bool, alphabet:bool, stopw:bool)->str:
 #	try:
 	norm_text = text_str
+
 	if case_split:	#Split words starting with capital letter followed by lower case letters (C styple naming convention)
-		norm_text = " ".join(re.sub(r"([A-Z]+[a-z]+$)", r" \1", text_str).split())
+		norm_text = re.sub(r"([A-Z]+[a-z])", r" \1", norm_text)
+		#norm_text = " ".join(re.sub(r"([A-Z]+[a-z])", r" \1", norm_text).split())
 
 	if to_lower:
 		norm_text = norm_text.lower()
 
 	if alphabet:
-		norm_text = re.sub('[^a-zA-Z]+', ' ', norm_text)
-		#norm_text = re.sub('[^0-9a-zA-Z]+', ' ', norm_text)
-	norm_text = " ".join(norm_text.split())		# remove trailing,ecseeding and multiple white spaces.
+		norm_text = re.sub('\\\\.|[^a-zA-Z]+', ' ', norm_text)
+
+#	norm_text = " ".join(norm_text.split())		# remove trailing, ecseeding and multiple white spaces.
+	if stopw:
+		filtered = []
+		stop_words = stopwords.words('english')
+		for word in norm_text.split():
+			if not word in stop_words:
+				filtered.append(word)
+
+	norm_text = " ".join(filtered)
+
 	return norm_text
 
 
 # Normalize the text.
 # returning the text containint alphanum text.
 # and remove hihly frequent words (stop words).
-def DocsNorm(docs_dic:dict, case_split:bool, to_lower:bool, alphabet:bool)->dict:
+def CodeDocsNorm(docs_dic:dict, case_split:bool, to_lower:bool, alphabet:bool, stopw:bool)->dict:
 	docs_norm = {}
 	for key, document in docs_dic.items():
-		norm_text = StringNorm(document, case_split, to_lower, alphabet)
+		norm_text = CodeLineNorm(document, case_split, to_lower, alphabet, stopw)
 		docs_norm[key] = norm_text
 	return docs_norm
+
+
+
+
 
 #Convert the list of document terms in to a unified list of terms.
 def DocsWordset(docs_dic:dict):

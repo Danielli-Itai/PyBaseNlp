@@ -1,16 +1,26 @@
 #https://www.geeksforgeeks.org/tokenize-text-using-nltk-python/
-
+import os
 import sys
 import nltk
 from nltk import metrics
 from nltk.metrics import scores
 from nltk.metrics import confusionmatrix
 
-sys.path.append('../')
+# Set project include path.
+sys.path.append(os.path.join(os.getcwd(),'../'))
+
+# Include project paths.
 from  PyBase import Files
 
 
 
+
+
+######################################################################
+#                                                                    #
+#						NLTK API functions 							 #
+#                                                                    #
+######################################################################
 
 #**************************************************************
 #cd c:/Python37
@@ -18,10 +28,6 @@ from  PyBase import Files
 #python setup.py
 def NltkSetup():
     nltk.download (info_or_id="stopwords",download_dir=Files.WorkingDir())
-
-
-
-
 
 # splitting the text in to tokens (words).
 def Tokenize(text:str):

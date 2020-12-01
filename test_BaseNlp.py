@@ -10,7 +10,8 @@ import sys
 import nltk
 from unittest import TestCase
 
-sys.path.append(os.path.join(os.getcwd(), '../'))
+# Set project include path.
+sys.path.append(os.path.join(os.getcwd(),'../'))
 from SubstitutionMap.PyBaseNlp import TextNltk
 from SubstitutionMap.PyGenom import SeqStr
 from SubstitutionMap.PyGenom import SeqDna

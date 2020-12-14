@@ -10,6 +10,7 @@ from io import StringIO
 import numpy
 import pathlib as path
 
+sys.path.append('./')
 sys.path.append(os.path.join(os.getcwd(),'../PyBase'))
 from PyBase import Files
 

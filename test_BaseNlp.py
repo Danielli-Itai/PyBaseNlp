@@ -7,15 +7,11 @@
 ######################################################################
 import os
 import sys
-import nltk
 from unittest import TestCase
 
+sys.path.append('./')
 sys.path.append(os.path.join(os.getcwd(), '../'))
-from SubstitutionMap.PyBaseNlp import TextNltk
-from SubstitutionMap.PyGenom import SeqStr
-from SubstitutionMap.PyGenom import SeqDna
-from SubstitutionMap.PyGenom import SeqFiles
-from SubstitutionMap.PyGenom import SeqPlot
+from PyBaseNlp import TextNltk
 
 
 

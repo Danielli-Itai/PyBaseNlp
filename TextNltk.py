@@ -2,10 +2,10 @@
 
 import sys
 import nltk
-from nltk import metrics
 from nltk.metrics import scores
 from nltk.metrics import confusionmatrix
 
+sys.path.append('./')
 sys.path.append('../')
 from  PyBase import Files
 

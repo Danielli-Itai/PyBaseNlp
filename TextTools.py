@@ -1,8 +1,20 @@
+import os
+import sys
 import pathlib as path
 import numpy as np
 
+# Set project include path.
+sys.path.append(os.path.join(os.getcwd(),'../'))
 
 
+
+
+
+######################################################################
+#                                                                    #
+#							Text Tools								 #
+#                                                                    #
+######################################################################
 
 # ## Text variable
 # To analyze the text variable we create a class **TweetsCounts**.

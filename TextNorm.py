@@ -1,8 +1,11 @@
 # Natural language normalization
+import os
+import sys
 import re
 import math
-import nltk
-from nltk.corpus import stopwords
+
+# Set project include path.
+sys.path.append(os.path.join(os.getcwd(),'../'))
 
 
 
@@ -12,7 +15,7 @@ from nltk.corpus import stopwords
 
 ######################################################################
 #                                                                    #
-#                             Files API                              #
+#						Documents Normalization						 #
 #                                                                    #
 ######################################################################
 

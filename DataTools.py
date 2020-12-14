@@ -10,20 +10,33 @@ from io import StringIO
 import numpy
 import pathlib as path
 
+
+# Set project include path.
 sys.path.append('./')
-sys.path.append(os.path.join(os.getcwd(),'../PyBase'))
+sys.path.append(os.path.join(os.getcwd(),'../'))
 from PyBase import Files
 
 
 
 
 
+######################################################################
+#                                                                    #
+#							Constants 								 #
+#                                                                    #
+######################################################################
 CSV_SEP_FLD:str = ','
 CSV_SEP_REC:str = '\n'
 
 
 
 
+
+######################################################################
+#                                                                    #
+#						Data API functions							 #
+#                                                                    #
+######################################################################
 def DataCsvGet(csv_str:str):
 	TESTDATA = StringIO(csv_str)
 	data_frame = pandas.read_csv(TESTDATA, engine='python', encoding='utf8')

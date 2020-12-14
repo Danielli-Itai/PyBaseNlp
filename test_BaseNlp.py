@@ -9,8 +9,10 @@ import os
 import sys
 from unittest import TestCase
 
+
+# Set project include path.
 sys.path.append('./')
-sys.path.append(os.path.join(os.getcwd(), '../'))
+sys.path.append(os.path.join(os.getcwd(),'../'))
 from PyBaseNlp import TextNltk
 
 

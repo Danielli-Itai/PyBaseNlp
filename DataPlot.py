@@ -5,7 +5,9 @@ import numpy
 import pathlib as path
 import matplotlib.pyplot as plt
 
+
 # Set project include path.
+sys.path.append('./')
 sys.path.append(os.path.join(os.getcwd(),'../'))
 
 

@@ -2,14 +2,13 @@
 import os
 import sys
 import nltk
-from nltk import metrics
 from nltk.metrics import scores
 from nltk.metrics import confusionmatrix
 
 # Set project include path.
-sys.path.append(os.path.join(os.getcwd(),'../'))
+sys.path.append('./')
+sys.path.append('../')
 
-# Include project paths.
 from  PyBase import Files
 
 

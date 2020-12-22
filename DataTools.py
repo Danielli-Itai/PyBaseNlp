@@ -10,9 +10,12 @@ from io import StringIO
 import numpy
 import pathlib as path
 
+
 # Set project include path.
+sys.path.append('./')
 sys.path.append(os.path.join(os.getcwd(),'../'))
 from PyBase import Files
+
 
 
 

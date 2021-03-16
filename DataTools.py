@@ -25,7 +25,7 @@ from PyBase import Files
 #							Constants 								 #
 #                                                                    #
 ######################################################################
-CSV_SEP_FLD:str = ','
+CSV_SEP_FLD:str = ';'
 CSV_SEP_REC:str = '\n'
 
 
@@ -44,13 +44,13 @@ def DataCsvGet(csv_str:str):
 
 def DataCsvLoad(file_path:path, scrumbele:bool)->pandas:
 	#pandas.set_option('display.max_colwidth', None)
-	data_frame = pandas.read_csv(file_path, engine='python',index_col=False, encoding='utf8')
+	data_frame = pandas.read_csv(file_path, sep=CSV_SEP_FLD, engine='python',index_col=False, encoding='utf8')
 	if scrumbele:
 		data_frame = data_frame.reindex(numpy.random.permutation(data_frame.index))
 	return data_frame
 
 def DataCsvSave(data_file:pandas.DataFrame, file_path:path):
-	data_file.to_csv(file_path, index=False)
+	data_file.to_csv(file_path, sep=CSV_SEP_FLD, index=False)
 	return
 
 

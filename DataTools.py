@@ -49,8 +49,8 @@ def DataCsvLoad(file_path:path, scrumbele:bool)->pandas:
 		data_frame = data_frame.reindex(numpy.random.permutation(data_frame.index))
 	return data_frame
 
-def DataCsvSave(data_file:pandas.DataFrame, file_path:path):
-	data_file.to_csv(file_path, sep=CSV_SEP_FLD, index=False)
+def DataCsvSave(data_frame:pandas.DataFrame, file_path:path):
+	data_frame.to_csv(file_path, sep=CSV_SEP_FLD, index=False)
 	return
 
 

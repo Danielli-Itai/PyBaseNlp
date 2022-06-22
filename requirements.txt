@@ -35,7 +35,7 @@ mysql==0.0.2
 mysqlclient==2.0.1
 netifaces==0.10.6
 nltk==3.5
-numpy==1.18.5
+numpy==1.22.0
 oauthlib==3.1.0
 opt-einsum==3.3.0
 oschmod==0.3.12
